@@ -1,0 +1,16 @@
+[
+    {
+        "id": "lang1",
+        "label": "Subtitle Language (1)",
+        "type": "enum",
+        "values": ["None", "Magyar", "Angol", "Albán", "Arab", "Bolgár", "Cseh", "Dán", "Finn", "Francia", "Görög", "Héber", "Holland", "Horvát", "Koreai", "Lengyel", "Német", "Norvég", "Olasz", "Orosz", "Portugál", "Román", "Spanyol", "Svéd", "Szerb", "Szlovén", "Szlovák", "Török"],
+        "default": "None"
+    },
+    {
+        "id": "lang2",
+        "label": "Subtitle Language (2)",
+        "type": "enum",
+        "values": ["None", "Magyar", "Angol", "Albán", "Arab", "Bolgár", "Cseh", "Dán", "Finn", "Francia", "Görög", "Héber", "Holland", "Horvát", "Koreai", "Lengyel", "Német", "Norvég", "Olasz", "Orosz", "Portugál", "Román", "Spanyol", "Svéd", "Szerb", "Szlovén", "Szlovák", "Török"],
+        "default": "None"
+    }
+]
