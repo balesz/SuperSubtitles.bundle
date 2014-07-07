@@ -1,9 +1,42 @@
 # coding=utf-8
+from fileinput import filename
 import SuperSubtitlesSearch
 
 
+languages = {
+    "None": "None",
+    "Magyar": "hu",
+    "Angol": "en",
+    "Albán": "sq",
+    "Arab": "ar",
+    "Bolgár": "bg",
+    "Cseh": "cs",
+    "Dán": "da",
+    "Finn": "fi",
+    "Francia": "fr",
+    "Görög": "el",
+    "Héber": "he",
+    "Holland": "nl",
+    "Horvát": "co",
+    "Koreai": "ko",
+    "Lengyel": "pl",
+    "Német": "de",
+    "Norvég": "no",
+    "Olasz": "it",
+    "Orosz": "ru",
+    "Portugál": "pt",
+    "Román": "ro",
+    "Spanyol": "es",
+    "Svéd": "sv",
+    "Szerb": "sr",
+    "Szlovén": "sl",
+    "Szlovák": "sk",
+    "Török": "tr"
+}
+
+
 def Start():
-    Log('Start')
+    Log('########## Start ##########')
 
 
 class SuperSubtitleAgentMovie(Agent.Movies):
@@ -35,10 +68,11 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
             for e in media.seasons[s].episodes:
                 for item in media.seasons[s].episodes[e].items:
                     for part in item.parts:
-                        if 'hu' not in part.subtitles.keys():
-                            results = SuperSubtitlesSearch.get_tv_subtitles(metadata.id, lang1, s, e)
-                            result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
-                            if result:
-                                filename, data = SuperSubtitlesSearch.download_subtitle(result.id)
-                                Log(filename)
-                                part.subtitles['hu'][result.id] = Proxy.Media(data, ext=filename.split('.')[-1])
+                        results = SuperSubtitlesSearch.get_tv_subtitles(metadata.id, lang1, s, e)
+                        result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
+                        if not result:
+                            continue
+                        subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
+                        if subtitle[0].split('.')[-1] != 'zip':
+                            Log(subtitle[0])
+                            part.subtitles[languages[lang1]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
