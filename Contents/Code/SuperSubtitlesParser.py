@@ -91,7 +91,7 @@ class DescriptionParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag == 'a' and len(attrs) == 3 and attrs[2] == ('alt', 'iMDB'):
-            match = re.search('^.*/tt(\d*)/?$', attrs[0][1])
+            match = re.search('^.*/(tt\d*)/?$', attrs[0][1])
             if match:
                 self.metadata.imdb_id = match.group(1)
         if tag == 'a' and len(attrs) == 3 and attrs[2] == ('alt', 'TheTVDB'):

@@ -1,5 +1,4 @@
 # coding=utf-8
-from fileinput import filename
 import SuperSubtitlesSearch
 
 
@@ -46,10 +45,25 @@ class SuperSubtitleAgentMovie(Agent.Movies):
     contributes_to = ['com.plexapp.agents.imdb']
 
     def search(self, results, media, lang, manual):
-        Log('########## Movie Search ##########')
+        show_id = SuperSubtitlesSearch.search_show(media.primary_metadata.title, media.primary_metadata.id)
+        Log('%s %s', media.primary_metadata.id, show_id)
+        if show_id is not None:
+            results.Append(MetadataSearchResult(id=show_id, score=100))
 
     def update(self, metadata, media, lang):
-        Log('########## Movie Update ##########')
+        for item in media.items:
+            for part in item.parts:
+                for lang in (Prefs['lang1'], Prefs['lang2']):
+                    if lang == 'None':
+                        continue
+                    results = SuperSubtitlesSearch.get_movie_subtitles(metadata.id, lang)
+                    result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
+                    if not result:
+                        continue
+                    subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
+                    if subtitle[0].split('.')[-1] != 'zip':
+                        Log(subtitle[0])
+                        part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
 
 
 class SuperSubtitleAgentTv(Agent.TV_Shows):
@@ -60,19 +74,22 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
 
     def search(self, results, media, lang, manual):
         show_id = SuperSubtitlesSearch.search_show(media.primary_metadata.title, media.primary_metadata.id)
-        results.Append(MetadataSearchResult(id=show_id, score=100))
+        if show_id is not None:
+            results.Append(MetadataSearchResult(id=show_id, score=100))
 
     def update(self, metadata, media, lang):
-        lang1 = Prefs['lang1']
         for s in media.seasons:
             for e in media.seasons[s].episodes:
                 for item in media.seasons[s].episodes[e].items:
                     for part in item.parts:
-                        results = SuperSubtitlesSearch.get_tv_subtitles(metadata.id, lang1, s, e)
-                        result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
-                        if not result:
-                            continue
-                        subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
-                        if subtitle[0].split('.')[-1] != 'zip':
-                            Log(subtitle[0])
-                            part.subtitles[languages[lang1]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
+                        for lang in (Prefs['lang1'], Prefs['lang2']):
+                            if lang == 'None':
+                                continue
+                            results = SuperSubtitlesSearch.get_tv_subtitles(metadata.id, lang, s, e)
+                            result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
+                            if not result:
+                                continue
+                            subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
+                            if subtitle[0].split('.')[-1] != 'zip':
+                                Log(subtitle[0])
+                                part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])

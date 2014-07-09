@@ -1,9 +1,7 @@
 # coding=utf-8
-import re
 import urllib
 import httplib
-from SuperSubtitlesParser import ResultParser
-from SuperSubtitlesParser import DescriptionParser
+from SuperSubtitlesParser import *
 
 
 def get_html_source(url, path, params=None):
@@ -65,6 +63,8 @@ def filter_subtitles(results, filename):
             found = len(ver) > 0
             for v in ver:
                 found = found and (v.lower() in str(filename).lower())
+            if not found:
+                found = ver[-1].lower() in str(filename).lower()
             if found:
                 return result
     return None
