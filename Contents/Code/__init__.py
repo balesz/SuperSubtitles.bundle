@@ -1,4 +1,5 @@
 # coding=utf-8
+import re
 import SuperSubtitlesSearch
 
 
@@ -78,6 +79,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
     def update(self, metadata, media, lang):
+        name_pattern = re.compile(r'^.* - (\d*)x(\d*) - .* \((.*)\).*')
         for s in media.seasons:
             for e in media.seasons[s].episodes:
                 for item in media.seasons[s].episodes[e].items:
@@ -90,6 +92,18 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
                             if not result:
                                 continue
                             subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
-                            if subtitle[0].split('.')[-1] != 'zip':
+                            extension = subtitle[0].split('.')[-1]
+                            if extension == 'zip':
+                                zip_archive = Archive.Zip(subtitle[1])
+                                for name in zip_archive:
+                                    if name[-1] == '/':
+                                        continue
+                                    match = name_pattern.match(str(name))
+                                    extension = str(name).split('.')[-1]
+                                    if match and int(match.group(1)) == int(s) and int(match.group(2)) == int(e):
+                                        Log('ZIP -> %s' % name)
+                                        part.subtitles[languages[lang]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
+                                        break
+                            else:
                                 Log(subtitle[0])
-                                part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
+                                part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=extension)
