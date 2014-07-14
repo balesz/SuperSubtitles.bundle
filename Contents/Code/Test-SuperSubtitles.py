@@ -1,5 +1,5 @@
 import unittest
-
+import SuperSubtitlesSearch
 
 class MyTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class MyTestCase(unittest.TestCase):
         print(id)
 
     def test_movie(self):
-        id = SuperSubtitlesSearch.search_show("Leaving las vegas", '0113627')
+        id = SuperSubtitlesSearch.search_show("Leaving las vegas", 'tt0113627')
         print(id)
 
 

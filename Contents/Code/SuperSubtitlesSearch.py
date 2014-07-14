@@ -55,9 +55,9 @@ def get_tv_subtitles(show_id, language, season, episode):
 
 
 def filter_subtitles(results, filename):
-    subtitle_pattern = re.compile(r'^.*\((.*)\)?$')
+    version_pattern = re.compile(r'^.*\((.*)\)?$')
     for result in results:
-        versions = subtitle_pattern.match(result.name).group(1).split(', ')
+        versions = version_pattern.match(result.name).group(1).split(', ')
         for version in versions:
             ver = version.replace(')', '').split('-')
             found = len(ver) > 0

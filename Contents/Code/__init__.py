@@ -35,10 +35,6 @@ languages = {
 }
 
 
-def Start():
-    Log('########## Start ##########')
-
-
 class SuperSubtitleAgentMovie(Agent.Movies):
     name = 'Feliratok.info'
     languages = [Locale.Language.NoLanguage]
@@ -47,7 +43,6 @@ class SuperSubtitleAgentMovie(Agent.Movies):
 
     def search(self, results, media, lang, manual):
         show_id = SuperSubtitlesSearch.search_show(media.primary_metadata.title, media.primary_metadata.id)
-        Log('%s %s', media.primary_metadata.id, show_id)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
@@ -63,7 +58,6 @@ class SuperSubtitleAgentMovie(Agent.Movies):
                         continue
                     subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
                     if subtitle[0].split('.')[-1] != 'zip':
-                        Log(subtitle[0])
                         part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
 
 
@@ -101,9 +95,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
                                     match = name_pattern.match(str(name))
                                     extension = str(name).split('.')[-1]
                                     if match and int(match.group(1)) == int(s) and int(match.group(2)) == int(e):
-                                        Log('ZIP -> %s' % name)
                                         part.subtitles[languages[lang]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
                                         break
                             else:
-                                Log(subtitle[0])
                                 part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=extension)
