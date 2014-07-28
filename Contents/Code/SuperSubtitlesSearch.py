@@ -70,8 +70,8 @@ def filter_subtitles(results, filename):
     return None
 
 
-def download_subtitle(show_id):
-    params = dict(action='letolt', felirat=show_id)
+def download_subtitle(subtitle_id):
+    params = dict(action='letolt', felirat=subtitle_id)
     headers, result = get_html_source('www.feliratok.info', '/index.php', params)
     filename = None
     for header in headers:
