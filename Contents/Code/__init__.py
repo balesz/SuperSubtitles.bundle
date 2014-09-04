@@ -42,7 +42,8 @@ class SuperSubtitleAgentMovie(Agent.Movies):
     contributes_to = ['com.plexapp.agents.imdb']
 
     def search(self, results, media, lang, manual):
-        show_id = SuperSubtitlesSearch.search_show(media.primary_metadata.title, media.primary_metadata.id)
+        title = media.primary_metadata.title
+        show_id = SuperSubtitlesSearch.search_show(title, media.primary_metadata.id)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
@@ -70,7 +71,9 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
     episode_pattern = re.compile(r'(\d+)x(\d+)|s(\d+)e(\d+)', re.I)
 
     def search(self, results, media, lang, manual):
-        show_id = SuperSubtitlesSearch.search_show(media.primary_metadata.title, media.primary_metadata.id)
+        title = media.primary_metadata.title
+        title = re.sub(r'(.*) \(.*\)', r'\1', title)
+        show_id = SuperSubtitlesSearch.search_show(title, media.primary_metadata.id)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
