@@ -103,7 +103,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
                 match = self.episode_pattern.search(str(name))
                 hit = match and match.group(1) is not None and int(match.group(1)) == int(season) and int(match.group(2)) == int(episode)
                 hit = hit if hit else match and match.group(3) is not None and int(match.group(3)) == int(season) and int(match.group(4)) == int(episode)
-                if hit:
+                if hit and SuperSubtitlesSearch.check_version(name, part.file) is not None:
                     part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
                     break
         else:

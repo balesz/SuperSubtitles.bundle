@@ -70,6 +70,21 @@ def filter_subtitles(results, filename):
     return None
 
 
+def check_version(subtitle, filename):
+    version_pattern = re.compile(r'^.*\((.*)\).*$')
+    versions = version_pattern.match(subtitle).group(1).split(', ')
+    for version in versions:
+        ver = version.replace(')', '').split('-')
+        found = len(ver) > 0
+        for v in ver:
+            found = found and (v.lower() in str(filename).lower())
+        if not found:
+            found = ver[-1].lower() in str(filename).lower()
+        if found:
+            return subtitle
+    return None
+
+
 def download_subtitle(subtitle_id):
     params = dict(action='letolt', felirat=subtitle_id)
     headers, result = get_html_source('www.feliratok.info', '/index.php', params)
