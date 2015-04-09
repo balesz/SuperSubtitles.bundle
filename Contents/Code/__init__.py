@@ -96,15 +96,24 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
         extension = subtitle[0].split('.')[-1]
         if extension == 'zip':
             zip_archive = Archive.Zip(subtitle[1])
+            zip_results = []
+            file_count = 0
             for name in zip_archive:
-                if name[-1] == '/':
-                    continue
+                file_count += 1
                 extension = str(name).split('.')[-1]
+                if name[-1] == '/' or extension != 'srt':
+                    continue
                 match = self.episode_pattern.search(str(name))
                 hit = match and match.group(1) is not None and int(match.group(1)) == int(season) and int(match.group(2)) == int(episode)
                 hit = hit if hit else match and match.group(3) is not None and int(match.group(3)) == int(season) and int(match.group(4)) == int(episode)
-                if hit and SuperSubtitlesSearch.check_version(name, part.file) is not None:
-                    part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
-                    break
+                if hit:
+                    zip_results.append(name)
+            if len(zip_results) == 1:
+                part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[zip_results[0]], ext=extension)
+            else:
+                for name in zip_results:
+                    if SuperSubtitlesSearch.check_version(name, part.file) is not None:
+                        part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
+
         else:
             part.subtitles[languages[language]][result.id] = Proxy.Media(subtitle[1], ext=extension)
