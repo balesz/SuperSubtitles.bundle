@@ -2,17 +2,18 @@ import unittest
 import re
 import SuperSubtitlesSearch
 
+
 class MyTestCase(unittest.TestCase):
 
-    def test_tv(self):
+    def test1_tv(self):
         id = SuperSubtitlesSearch.search_show("Defiance", '255326')
         print(id)
 
-    def test_movie(self):
+    def test2_movie(self):
         id = SuperSubtitlesSearch.search_show("Leaving las vegas", 'tt0113627')
         print(id)
 
-    def test_regexp(self):
+    def test3_regexp(self):
         regexp = re.compile(r'((\d+)x(\d+)|s(\d+)e(\d+))', re.I)
         match = regexp.search('The Strain - 01x01 - Night Zero.DIMENSION.Eng.srt')
         if match:

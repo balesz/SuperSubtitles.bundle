@@ -66,6 +66,9 @@ class ResultParser(HTMLParser):
                 self.subtitle = None
                 self.processing = False
 
+    def error(self, message):
+        pass
+
     def get_name(self, value):
         self.subtitle.name = value
 
@@ -82,6 +85,7 @@ class ResultParser(HTMLParser):
 
 
 class DescriptionParser(HTMLParser):
+
     metadata = SubtitleInfo()
 
     def __init__(self, metadata, description):
@@ -98,3 +102,6 @@ class DescriptionParser(HTMLParser):
             match = re.search('^.*id=(\d*)$', attrs[0][1])
             if match:
                 self.metadata.tvdb_id = match.group(1)
+
+    def error(self, message):
+        pass
