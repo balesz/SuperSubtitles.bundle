@@ -1,16 +1,16 @@
 import unittest
 import re
-import SuperSubtitlesSearch
+import search
 
 
 class MyTestCase(unittest.TestCase):
 
     def test1_tv(self):
-        id = SuperSubtitlesSearch.search_show("Defiance", '255326')
+        id = search.search_show("Defiance", '255326')
         print(id)
 
     def test2_movie(self):
-        id = SuperSubtitlesSearch.search_show("Leaving las vegas", 'tt0113627')
+        id = search.search_show("Leaving las vegas", 'tt0113627')
         print(id)
 
     def test3_regexp(self):

@@ -1,7 +1,7 @@
 # coding=utf-8
 import urllib
 import httplib
-from SuperSubtitlesParser import *
+from parser import *
 
 
 def get_html_source(url, path, params=None):

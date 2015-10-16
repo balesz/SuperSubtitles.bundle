@@ -1,7 +1,8 @@
 # coding=utf-8
+import os
 import re
-import SuperSubtitlesSearch
-
+import search
+import utils
 
 languages = {
     "None": "None",
@@ -43,7 +44,7 @@ class SuperSubtitleAgentMovie(Agent.Movies):
 
     def search(self, results, media, lang, manual):
         title = media.primary_metadata.title
-        show_id = SuperSubtitlesSearch.search_show(title, media.primary_metadata.id)
+        show_id = search.search_show(title, media.primary_metadata.id)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
@@ -53,11 +54,11 @@ class SuperSubtitleAgentMovie(Agent.Movies):
                 for lang in (Prefs['lang1'], Prefs['lang2']):
                     if lang == 'None':
                         continue
-                    results = SuperSubtitlesSearch.get_movie_subtitles(metadata.id, lang)
-                    result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
+                    results = search.get_movie_subtitles(metadata.id, lang)
+                    result = search.filter_subtitles(results, part.file)
                     if not result:
                         continue
-                    subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
+                    subtitle = search.download_subtitle(result.id)
                     if subtitle[0].split('.')[-1] != 'zip':
                         part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
 
@@ -73,7 +74,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
     def search(self, results, media, lang, manual):
         title = media.primary_metadata.title
         title = re.sub(r'(.*) \(.*\)', r'\1', title)
-        show_id = SuperSubtitlesSearch.search_show(title, media.primary_metadata.id)
+        show_id = search.search_show(title, media.primary_metadata.id)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
@@ -88,11 +89,11 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
     def update_part(self, language, metadata, media, season, episode, part):
         if language == 'None':
             return
-        results = SuperSubtitlesSearch.get_tv_subtitles(metadata.id, language, season, episode)
-        result = SuperSubtitlesSearch.filter_subtitles(results, part.file)
+        results = search.get_tv_subtitles(metadata.id, language, season, episode)
+        result = search.filter_subtitles(results, part.file)
         if not result:
             return
-        subtitle = SuperSubtitlesSearch.download_subtitle(result.id)
+        subtitle = search.download_subtitle(result.id)
         extension = subtitle[0].split('.')[-1]
         if extension == 'zip':
             zip_archive = Archive.Zip(subtitle[1])
@@ -112,8 +113,12 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
                 part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[zip_results[0]], ext=extension)
             else:
                 for name in zip_results:
-                    if SuperSubtitlesSearch.check_version(name, part.file) is not None:
+                    if search.check_version(name, part.file) is not None:
                         part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
-
+        elif extension == 'rar':
+            temp_dir, files = utils.unpack(os.path.dirname(part.file), subtitle[1])
+            for item in files:
+                os.remove(temp_dir+'/'+item)
+            os.removedirs(temp_dir)
         else:
             part.subtitles[languages[language]][result.id] = Proxy.Media(subtitle[1], ext=extension)
