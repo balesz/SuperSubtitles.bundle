@@ -17,8 +17,23 @@ def get_html_source(url, path, params=None):
         return result
 
 
-def search_show(name, primary_id):
-    params = dict(search=name)
+class SearchShow:
+    def __init__(self, title, primary_id):
+        self.title = str(title)
+        self.primary_id = str(primary_id)
+
+    def search(self):
+        result = search_show(self.title, self.primary_id)
+        if result is None:
+            for segment in self.title.split(' '):
+                result = search_show(segment, self.primary_id)
+                if result is not None:
+                    return result
+        return None
+
+
+def search_show(search, primary_id):
+    params = dict(search=search)
     result = get_html_source('www.feliratok.info', '/index.php', params)
     parser = ResultParser(result[1])
     for item in parser.results:

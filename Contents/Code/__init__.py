@@ -75,7 +75,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
     def search(self, results, media, lang, manual):
         title = media.primary_metadata.title
         title = re.sub(r'(.*) \(.*\)', r'\1', title)
-        show_id = search.search_show(title, media.primary_metadata.id)
+        show_id = search.SearchShow(title, media.primary_metadata.id).search()
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
