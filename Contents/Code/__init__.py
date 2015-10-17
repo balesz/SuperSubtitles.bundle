@@ -1,8 +1,9 @@
 # coding=utf-8
 import os
+import io
 import re
+import subprocess
 import search
-import utils
 
 languages = {
     "None": "None",
@@ -95,30 +96,48 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
             return
         subtitle = search.download_subtitle(result.id)
         extension = subtitle[0].split('.')[-1]
-        if extension == 'zip':
-            zip_archive = Archive.Zip(subtitle[1])
-            zip_results = []
-            file_count = 0
-            for name in zip_archive:
-                file_count += 1
-                extension = str(name).split('.')[-1]
-                if name[-1] == '/' or extension != 'srt':
-                    continue
-                match = self.episode_pattern.search(str(name))
+        lang = languages[language]
+        if extension not in ['zip', 'rar']:
+            part.subtitles[lang][result.id] = Proxy.Media(subtitle[1], ext=extension)
+            return
+        else:
+            temp_dir, files = unpack(os.path.dirname(part.file), subtitle[1])
+            found = []
+            for name in files:
+                match = self.episode_pattern.search(name)
                 hit = match and match.group(1) is not None and int(match.group(1)) == int(season) and int(match.group(2)) == int(episode)
                 hit = hit if hit else match and match.group(3) is not None and int(match.group(3)) == int(season) and int(match.group(4)) == int(episode)
                 if hit:
-                    zip_results.append(name)
-            if len(zip_results) == 1:
-                part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[zip_results[0]], ext=extension)
+                    found.append(name)
+            if len(found) == 1:
+                save_subtitle(part, lang, result.id, temp_dir+'/'+found[0])
             else:
-                for name in zip_results:
+                for name in found:
                     if search.check_version(name, part.file) is not None:
-                        part.subtitles[languages[language]][result.id] = Proxy.Media(zip_archive[name], ext=extension)
-        elif extension == 'rar':
-            temp_dir, files = utils.unpack(os.path.dirname(part.file), subtitle[1])
+                        save_subtitle(part, languages[language], result.id, temp_dir+'/'+name)
             for item in files:
                 os.remove(temp_dir+'/'+item)
             os.removedirs(temp_dir)
-        else:
-            part.subtitles[languages[language]][result.id] = Proxy.Media(subtitle[1], ext=extension)
+
+
+def unpack(directory, content):
+    filename = directory + '/temp.rar'
+    temp_dir = directory + '/temp'
+    output = io.FileIO(filename, mode='w')
+    output.write(content)
+    output.flush()
+    output.close()
+    command = '/usr/local/bin/7z e -y -o' + temp_dir + ' ' + filename
+    subprocess.check_output(command, shell=True)
+    os.remove(filename)
+    files = os.listdir(temp_dir)
+    return temp_dir, files
+
+
+def save_subtitle(part, language, result_id, path):
+    subtitle_file = io.FileIO(path, mode='r')
+    subtitle_data = subtitle_file.readall()
+    subtitle_file.flush()
+    subtitle_file.close()
+    extension = path.split('.')[-1]
+    part.subtitles[language][result_id] = Proxy.Media(subtitle_data, ext=extension)
