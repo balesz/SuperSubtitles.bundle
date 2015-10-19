@@ -29,7 +29,7 @@ class SearchShow:
                 result = search_show(segment, self.primary_id)
                 if result is not None:
                     return result
-        return None
+        return result
 
 
 def search_show(search, primary_id):
