@@ -5,7 +5,7 @@ from parser import *
 
 
 def get_html_source(url, path, params=None):
-        connection = httplib.HTTPConnection(url)
+        connection = httplib.HTTPSConnection(url)
         if params is not None:
             connection.request("GET", "%s?%s" % (path, urllib.urlencode(params)))
         else:
