@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/usr/bin/python2.7",
+    "python.linting.pylintArgs": [
+        "--disable-ids=C1001,R0903,C0111"
+    ]
+}
