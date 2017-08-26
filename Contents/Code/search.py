@@ -5,16 +5,19 @@ from parser import *
 
 
 def get_html_source(url, path, params=None):
-        connection = httplib.HTTPSConnection(url)
-        if params is not None:
-            connection.request("GET", "%s?%s" % (path, urllib.urlencode(params)))
-        else:
-            connection.request("GET", path)
-        response = connection.getresponse()
-        result = response.read()
-        result = response.getheaders(), result
-        connection.close()
-        return result
+    context = httplib.ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = httplib.ssl.CERT_NONE
+    connection = httplib.HTTPSConnection(url, context=context)
+    if params is not None:
+        connection.request("GET", "%s?%s" % (path, urllib.urlencode(params)))
+    else:
+        connection.request("GET", path)
+    response = connection.getresponse()
+    result = response.read()
+    result = response.getheaders(), result
+    connection.close()
+    return result
 
 
 class SearchShow:
