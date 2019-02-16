@@ -15,6 +15,7 @@ class SubtitleInfo:
     def __init__(self):
         self.id = None
         self.name = None
+        self.filename = None
         self.is_movie = False
         self.show_id = None
         self.imdb_id = None
@@ -45,6 +46,7 @@ class ResultParser(HTMLParser):
             if tag == "a":
                 self.get_show_id(attrs[0][1])
                 self.get_subtitle_id(attrs[0][1])
+                self.get_subtitle_name(attrs[0][1])
             if tag == "div" and attrs[0] == ("class", "eredeti"):
                 self.data = ""
                 self.need_reading_data = True
@@ -82,6 +84,11 @@ class ResultParser(HTMLParser):
         match = re.search(r'/index\.php\?action=letolt&fnev=.*&felirat=(\d*)', value)
         if match:
             self.subtitle.id = match.group(1)
+
+    def get_subtitle_name(self, value):
+        match = re.search(r'/index\.php\?action=letolt&fnev=(.*)&felirat=\d*', value)
+        if match:
+            self.subtitle.filename = match.group(1)
 
 
 class DescriptionParser(HTMLParser):
