@@ -3,65 +3,32 @@ import os
 import io
 import re
 import subprocess
+import agent
 import search
 
-languages = {
-    "None": "None",
-    "Magyar": "hu",
-    "Angol": "en",
-    "Albán": "sq",
-    "Arab": "ar",
-    "Bolgár": "bg",
-    "Cseh": "cs",
-    "Dán": "da",
-    "Finn": "fi",
-    "Francia": "fr",
-    "Görög": "el",
-    "Héber": "he",
-    "Holland": "nl",
-    "Horvát": "co",
-    "Koreai": "ko",
-    "Lengyel": "pl",
-    "Német": "de",
-    "Norvég": "no",
-    "Olasz": "it",
-    "Orosz": "ru",
-    "Portugál": "pt",
-    "Román": "ro",
-    "Spanyol": "es",
-    "Svéd": "sv",
-    "Szerb": "sr",
-    "Szlovén": "sl",
-    "Szlovák": "sk",
-    "Török": "tr"
-}
 
-
-class SuperSubtitleAgentMovie(Agent.Movies):
+class AgentMovie(Agent.Movies):
     name = 'Feliratok.info'
     languages = [Locale.Language.NoLanguage]
     primary_provider = False
     contributes_to = ['com.plexapp.agents.imdb']
+    feliratokAgent = agent.MovieAgent()
 
     def search(self, results, media, lang, manual):
         title = media.primary_metadata.title
-        show_id = search.search_show(title, media.primary_metadata.id)
+        metadata_id = media.primary_metadata.id
+        show_id = self.feliratokAgent.search(metadata_id, title)
         if show_id is not None:
             results.Append(MetadataSearchResult(id=show_id, score=100))
 
     def update(self, metadata, media, lang):
-        for item in media.items:
-            for part in item.parts:
-                for lang in (Prefs['lang1'], Prefs['lang2']):
-                    if lang == 'None':
-                        continue
-                    results = search.get_movie_subtitles(metadata.id, lang)
-                    result = search.filter_subtitles(results, part.file)
-                    if not result:
-                        continue
-                    subtitle = search.download_subtitle(result.id)
-                    if subtitle[0].split('.')[-1] != 'zip':
-                        part.subtitles[languages[lang]][result.id] = Proxy.Media(subtitle[1], ext=subtitle[0].split('.')[-1])
+        langs = [Prefs['lang1'], Prefs['lang2']]
+        langs = [lang for lang in langs if lang != 'None' and lang is not None]
+        parts = [part for item in media.items for part in item.parts]
+        for part in parts:
+            results = self.feliratokAgent.update(metadata.id, part.file, langs)
+            for primary_id, lang, filename, subtitle in results:
+                part.subtitles[agent.languages[lang]][primary_id] = Proxy.Media(subtitle, ext=filename.split('.')[-1])
 
 
 class SuperSubtitleAgentTv(Agent.TV_Shows):
@@ -95,13 +62,13 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
         if not result:
             return
         subtitle = search.download_subtitle(result.id)
-        extension = subtitle[0].split('.')[-1]
-        lang = languages[language]
+        extension = result.filename.split('.')[-1]
+        lang = agent.languages[language]
         if extension not in ['zip', 'rar']:
-            part.subtitles[lang][result.id] = Proxy.Media(subtitle[1], ext=extension)
+            part.subtitles[lang][result.id] = Proxy.Media(subtitle, ext=extension)
             return
         else:
-            temp_dir, files = unpack(os.path.dirname(part.file), subtitle[1])
+            temp_dir, files = unpack(os.path.dirname(part.file), subtitle)
             found = []
             for name in files:
                 match = self.episode_pattern.search(name)
@@ -114,7 +81,7 @@ class SuperSubtitleAgentTv(Agent.TV_Shows):
             else:
                 for name in found:
                     if search.check_version(name, part.file) is not None:
-                        save_subtitle(part, languages[language], result.id, temp_dir+'/'+name)
+                        save_subtitle(part, agent.languages[language], result.id, temp_dir+'/'+name)
             for item in files:
                 os.remove(temp_dir+'/'+item)
             os.removedirs(temp_dir)
